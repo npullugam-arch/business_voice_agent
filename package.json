@@ -1,0 +1,1 @@
+{"name":"tailorconnect-ai","private":true,"type":"module","scripts":{"test":"node tests/static-check.mjs","serve":"npx serve ."}}

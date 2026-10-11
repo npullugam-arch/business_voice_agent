@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+js/config.local.js
+.supabase/
+node_modules/
+coverage/
+*.log

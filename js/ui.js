@@ -1,0 +1,15 @@
+export const $ = (q, root = document) => root.querySelector(q);
+export const $$ = (q, root = document) => [...root.querySelectorAll(q)];
+export function showOnly(id) { ['loading','access-view','app'].forEach(x => document.getElementById(x)?.classList.toggle('hidden', x !== id)); }
+export function toast(message, type = '') { const el=$('#toast'); el.textContent=message; el.className=`toast ${type}`; clearTimeout(window.__toast); window.__toast=setTimeout(()=>el.classList.add('hidden'),4200); }
+let modalResolver=null;
+export function openModal(html) { $('#modal-body').innerHTML=html; $('#modal').classList.remove('hidden'); setTimeout(()=>$('#modal input, #modal button')?.focus(),50); }
+export function closeModal() { const resolve=modalResolver;modalResolver=null;window.__automationPopupOpen=false;if(window.__recordingObjectUrl){URL.revokeObjectURL(window.__recordingObjectUrl);window.__recordingObjectUrl=null}$('#modal').classList.add('hidden'); $('#modal-body').innerHTML='';resolve?.(false); }
+export function confirmModal({title,message,confirmText='Confirm'}={}){return new Promise(resolve=>{modalResolver=resolve;openModal(`<section class="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title"><div class="confirm-symbol" aria-hidden="true">&#10003;</div><h2 id="confirm-title">${escapeHtml(title||'Please confirm')}</h2><p>${escapeHtml(message||'Are you sure?')}</p><div class="confirm-actions"><button id="confirm-cancel" class="btn secondary" type="button">Cancel</button><button id="confirm-accept" class="btn success" type="button">${escapeHtml(confirmText)}</button></div></section>`);$('#confirm-cancel').onclick=closeModal;$('#confirm-accept').onclick=()=>{modalResolver=null;closeModal();resolve(true)}})}
+export const tel = p => p ? p.replace('+91','+91 ') : '—';
+export function formatDate(date) { if(!date)return 'Date not provided'; return new Intl.DateTimeFormat('en-IN',{dateStyle:'medium',timeZone:'Asia/Kolkata'}).format(new Date(`${date}T12:00:00+05:30`)); }
+export function formatDateTime(value) { if(!value)return '—'; return new Intl.DateTimeFormat('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}).format(new Date(value)); }
+export function normalizePhone(value) { const n=String(value).replace(/\D/g,'').replace(/^91(?=\d{10}$)/,''); return /^[6-9]\d{9}$/.test(n) ? `+91${n}` : null; }
+export function escapeHtml(v=''){const d=document.createElement('div');d.textContent=String(v);return d.innerHTML}
+export const statusText = s => ({not_ready:'Not ready',ready:'Not Called',idle:'Not Called',queued:'Starting Call',calling:'Calling',connected:'In Progress',completed:'Completed',called:'Completed',pickup_confirmed:'Pickup Confirmed',collected:'Collected',failed:'Failed',no_answer:'No Answer',busy:'Busy',disabled:'Calling Stopped'}[s]||'Not Called');
+export function setBusy(button,busy,text='Please wait…'){if(!button)return;button.disabled=busy;if(busy){button.dataset.old=button.textContent;button.textContent=text}else if(button.dataset.old)button.textContent=button.dataset.old}

@@ -1,0 +1,19 @@
+project_id = "tailor-connect-ai"
+
+[functions.start-tailor-call]
+verify_jwt = true
+
+[functions.sarvam-call-webhook]
+verify_jwt = false
+
+[functions.get-call-recording]
+verify_jwt = true
+
+[functions.sync-call-results]
+verify_jwt = true
+
+[functions.get-call-transcript]
+verify_jwt = true
+
+[functions.run-auto-calls]
+verify_jwt = false
