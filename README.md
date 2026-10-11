@@ -4,19 +4,11 @@ An English, mobile-first tailoring shop dashboard built with Vanilla HTML/CSS/Ja
 
 ## Authentication behavior
 
-There is no login page and users never enter an email or password. The browser silently creates a Supabase anonymous session. Access is then restricted by the `shop_members` table and Row Level Security.
+There is no login page and users never enter an email or password. The browser silently creates a Supabase anonymous session and automatically joins the shared Nandu Tailor shop. Anyone with the deployed website URL opens the dashboard directly.
 
 In Supabase, open **Authentication → Providers → Anonymous Sign-Ins** and enable anonymous sign-ins. Do not disable RLS or make customer tables public.
 
-Migration `202610110008_shared_nandu_shop.sql` adds every existing profile to the private Nandu Tailor shop. A new browser receives no customer data until its displayed device user ID is inserted into `shop_members` by a trusted administrator. This keeps the shared dashboard private even when somebody knows the website URL.
-
-To authorize a new device, copy its user ID from the Access required screen and run this in the Supabase SQL Editor:
-
-```sql
-insert into public.shop_members(shop_id,user_id,role)
-values('00000000-0000-4000-8000-000000000001','DEVICE_USER_ID','member')
-on conflict(shop_id,user_id) do update set active=true;
-```
+Migration `202610110013_public_dashboard_auto_join.sql` automatically registers every anonymous browser identity as a normal shop member. RLS remains enabled internally, but knowing the website URL is sufficient to access the shared dashboard and its customer information.
 
 ## Supabase setup
 
