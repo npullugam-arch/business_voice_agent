@@ -68,3 +68,19 @@ document.addEventListener('click',async event=>{
   if(!confirmed)return;
   try{setBusy(button,true,'Saving...');await api.collectOrder(orderId);toast('Order marked as completed. Further calls are stopped.','success');document.querySelector('.nav-button.active')?.click()}catch(error){toast(error.message||'The order could not be completed.','error')}finally{setBusy(button,false)}
 },true);
+
+document.addEventListener('click',async event=>{
+  const button=event.target.closest('[data-action="call"]');
+  if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const card=button.closest('[data-customer-id]'),customerId=card?.dataset.customerId;
+  if(!customerId)return toast('This customer could not be found.','error');
+  try{
+    setBusy(button,true,'Starting...');
+    const orderId=await api.grantCallConsent(customerId);
+    if(!orderId)throw new Error('Could not prepare this customer for calling.');
+    const result=await api.startCall(orderId);
+    toast(result.test_mode?'Test mode only — no real call was placed.':'Calling the customer now. Waiting for the final result.',result.test_mode?'':'success');
+    document.querySelector('.nav-button.active')?.click();
+  }catch(error){toast(error.message||'The call could not be started.','error')}finally{setBusy(button,false)}
+},true);
