@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.admin-login]
 verify_jwt = false
+
+[functions.admin-customer]
+verify_jwt = false

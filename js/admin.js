@@ -1,3 +1,4 @@
+import {confirmModal,toast,setBusy} from './ui.js';
 const config=window.TAILOR_CONNECT_CONFIG||{},loginView=document.querySelector('#admin-login-view'),form=document.querySelector('#admin-login-form'),errorBox=document.querySelector('#admin-login-error');
 const tokenKey='tailor-admin-session';
 function showLogin(message=''){document.querySelector('#loading').classList.add('hidden');document.querySelector('#app').classList.add('hidden');loginView.classList.remove('hidden');errorBox.textContent=message;errorBox.classList.toggle('hidden',!message);setTimeout(()=>form.elements.username.focus(),50)}
@@ -6,3 +7,15 @@ async function openAdmin(token){loginView.classList.add('hidden');document.query
 form.onsubmit=async event=>{event.preventDefault();const button=form.querySelector('[type="submit"]');button.disabled=true;button.textContent='Signing in…';errorBox.classList.add('hidden');try{const result=await request({action:'login',username:form.elements.username.value.trim(),password:form.elements.password.value});await openAdmin(result.token)}catch(error){showLogin(error.message)}finally{button.disabled=false;button.textContent='Sign In'}};
 document.querySelector('#toggle-password').onclick=()=>{const input=form.elements.password,visible=input.type==='text';input.type=visible?'password':'text';document.querySelector('#toggle-password').textContent=visible?'Show':'Hide';input.focus()};
 (async()=>{const token=sessionStorage.getItem(tokenKey);if(!token)return showLogin();loginView.classList.add('hidden');document.querySelector('#loading').classList.remove('hidden');try{await request({action:'verify',token});await openAdmin(token)}catch{sessionStorage.removeItem(tokenKey);showLogin('Your admin session expired. Please sign in again.')}})();
+
+function decorateCustomerCards(){if(document.querySelector('#page-title')?.textContent!=='Customers')return;document.querySelectorAll('#customers .calling-card').forEach(card=>{if(card.querySelector('[data-admin-delete]'))return;const button=document.createElement('button');button.type='button';button.className='btn danger admin-delete-customer';button.dataset.adminDelete='';button.textContent='Delete Customer';card.querySelector('.actions')?.appendChild(button)})}
+new MutationObserver(decorateCustomerCards).observe(document.querySelector('#page'),{childList:true,subtree:true});
+document.addEventListener('click',async event=>{
+  const button=event.target.closest('[data-admin-delete]');if(!button)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const card=button.closest('[data-customer-id]'),customerId=card?.dataset.customerId,name=card?.querySelector('h3')?.textContent?.trim()||'this customer';
+  if(!customerId)return toast('Customer could not be found.','error');
+  const confirmed=await confirmModal({title:'Delete customer permanently?',message:`Delete ${name} and all call history, conversations, replies and recording references? This cannot be undone.`,confirmText:'Delete Customer'});
+  if(!confirmed)return;
+  try{setBusy(button,true,'Deleting...');const token=sessionStorage.getItem(tokenKey),response=await fetch(`${config.supabaseUrl}/functions/v1/admin-customer`,{method:'POST',headers:{'Content-Type':'application/json',apikey:config.supabasePublishableKey},body:JSON.stringify({action:'delete',token,customer_id:customerId})}),data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error(data.message||'Customer could not be deleted');toast('Customer and complete call history deleted.','success');document.querySelector('.nav-button.active')?.click()}catch(error){toast(error.message||'Customer could not be deleted.','error')}finally{setBusy(button,false)}
+},true);
