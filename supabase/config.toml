@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.run-auto-calls]
 verify_jwt = false
+
+[functions.admin-login]
+verify_jwt = false
